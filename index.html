@@ -1,0 +1,1263 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sales Forecasting Dashboard / Consulting Blueprint Generator</title>
+  <meta name="description" content="Sales Forecasting Dashboard and Consulting Blueprint Generator; interactive one-page enterprise prototype." />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* CSS Variables for a cleaner, themeable approach (No Gradients) */
+    :root {
+      --bg-light: #f8fafc; /* Very light, almost white background */
+      --bg-dark: #ffffff;  /* Pure white for inner elements */
+      --panel-bg: #ffffff; /* Panels are pure white */
+      --border-light: #e2e8f0; /* Soft light grey border */
+      --border-dark: #cbd5e1;  /* Slightly darker border for contrast */
+      --text-primary: #1a202c; /* Dark text for readability */
+      --text-secondary: #718096; /* Muted text for descriptions */
+      --accent-blue: #3b82f6; /* Modern, clean blue accent */
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+      --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08); /* Slightly more prominent shadow for panels */
+      --focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.25); /* Focus ring matches accent */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 12px;
+      --max-width: 1200px;
+      --success-color: #10b981;
+      --danger-color: #ef4444;
+      --summary-bg: #eff6ff; /* Very light blue for summary background, no gradient */
+      --bar-fill-bg: #93c5fd; /* Solid light blue for progress bars */
+      --placeholder-bg: #e2e8f0; /* Light grey for placeholders */
+    }
+
+    /* Base Styles */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', sans-serif; /* Using 'Inter' from the second head */
+      background: var(--bg-light); /* Flat, light background */
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding-bottom: 24px; /* Adjust padding for the fixed footer */
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      margin: 0;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    h1 { font-size: 24px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 16px; }
+    p { margin-top: 0; margin-bottom: 1rem; }
+    .text-sm { font-size: 13px; }
+    .text-muted { color: var(--text-secondary); }
+
+    /* Layout */
+    .dashboard-header {
+      max-width: var(--max-width); /* Use variable for consistency */
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 24px; /* Space between header and main content */
+    }
+    .site-header .title h1 {
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .site-header .subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .site-header .meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: right;
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(300px, 400px) 1fr;
+      gap: 24px;
+      align-items: start;
+      padding: 0 24px; /* Add horizontal padding to container */
+    }
+
+    /* Panel Styling */
+    .panel {
+      background: var(--panel-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-md); /* Subtle shadow for depth */
+      border: 1px solid var(--border-light);
+    }
+    .panel h2, .panel h3 {
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+
+    /* Form Elements */
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-dark); /* Slightly stronger border for definition */
+      background: var(--bg-dark);
+      font-size: 15px;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input::placeholder, textarea::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.8;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: var(--focus-ring);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent-blue); /* Solid accent blue */
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-primary:hover {
+      background: #2563eb; /* Darker blue on hover */
+      box-shadow: var(--shadow-md);
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border-dark);
+      color: var(--text-primary);
+    }
+    .btn-ghost:hover {
+      background: var(--bg-light);
+      border-color: var(--accent-blue);
+    }
+    .btn-sm {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    /* Diagnostic Grid */
+    .diag-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .diag-grid .q {
+      background: var(--bg-dark); /* Pure white for diagnostic questions */
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      border: 1px solid var(--border-light);
+    }
+    .diag-grid .q strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .diag-grid .scale {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .diag-grid .scale label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      margin-bottom: 0;
+      font-weight: 400;
+    }
+    .diag-grid .scale input[type="radio"] {
+      margin-right: 4px;
+      width: auto;
+      margin-bottom: 0;
+      accent-color: var(--accent-blue); /* Native radio button accent color */
+    }
+    .diag-grid .scale .text-muted {
+      margin-left: auto;
+    }
+
+    /* Output Area */
+    .output {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .summary {
+      background: var(--summary-bg); /* Solid light blue for summary */
+      color: var(--text-primary);
+      border: 1px solid #bfdbfe; /* Slightly darker light blue border */
+      padding: 20px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+    .summary strong {
+      font-size: 16px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    /* KPI Cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--panel-bg);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+    }
+    .card h4 {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .kpi {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-top: 8px;
+    }
+
+    /* Roadmap */
+    .roadmap {
+      background: var(--panel-bg);
+      padding: 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+    }
+    .phase-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      transition: transform 0.2s ease, background 0.2s;
+      margin-bottom: 10px;
+    }
+    .phase-row:last-child {
+      margin-bottom: 0;
+    }
+    .phase-row:hover {
+      transform: translateY(-2px);
+      background: var(--bg-light);
+    }
+    .phase-bullet {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      background: var(--accent-blue); /* Solid accent blue */
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .phase-body {
+      flex: 1;
+    }
+    .phase-body > div:first-child {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .phase-body input[type="number"] {
+      width: 60px;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      margin-bottom: 0;
+      text-align: center;
+    }
+    .bar {
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border-light);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--bar-fill-bg); /* Solid light blue for progress bar fill */
+      transition: width 0.6s cubic-bezier(.2,.9,.3,1);
+    }
+
+    /* Recommendations Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 14px;
+    }
+    th {
+      font-weight: 700;
+      color: var(--text-primary);
+      background: var(--bg-light);
+    }
+    td {
+      color: var(--text-primary);
+    }
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Mini Charts */
+    .mini-chart {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      height: 60px;
+      padding: 10px 0;
+    }
+    .mini-chart .col {
+      flex: 1;
+      background: var(--bg-light);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      border: 1px solid var(--border-light);
+    }
+    .mini-chart .col span {
+      display: block;
+      width: 100%;
+      border-radius: var(--radius-sm);
+      background: var(--bar-fill-bg); /* Solid light blue for chart bars */
+      transition: height 0.6s ease;
+    }
+
+    /* Full Report / Brief */
+    #brief {
+      min-height: 180px;
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-light);
+      background: var(--bg-dark);
+      overflow: auto;
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.6;
+      margin-top: 16px;
+    }
+    #brief p { margin-bottom: 0.5rem; }
+    #brief ul { margin-top: 0.5rem; margin-bottom: 0.5rem; padding-left: 20px;}
+    #brief li { margin-bottom: 0.3rem; }
+
+    /* Utilities */
+    .hidden { display: none !important; }
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-light);
+      margin: 20px 0;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      animation: spin 0.9s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .fade-in {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: enter 0.5s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @keyframes enter {
+      to { opacity: 1; transform: none; }
+    }
+
+    /* Placeholder styles */
+    .placeholder-rect {
+        background-color: var(--placeholder-bg);
+        border-radius: var(--radius-sm);
+        animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
+    }
+
+    /* Footer */
+    .app-footer { /* Renamed to avoid conflict with general 'footer' tag */
+      max-width: var(--max-width);
+      margin: 24px auto 0 auto;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      padding: 16px 24px; /* Added horizontal padding */
+      border-top: 1px solid var(--border-light);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1000px) {
+      .container {
+        grid-template-columns: 1fr;
+        padding-bottom: 40px;
+      }
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 24px; /* Adjust padding for smaller screens */
+      }
+      .site-header .meta {
+        text-align: left;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        padding: 0;
+        background: #fff;
+      }
+      .dashboard-header, .panel .controls, .panel .btn, .app-footer { /* Updated footer class */
+        display: none !important;
+      }
+      .container {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .panel {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+      }
+      #brief {
+        border: none;
+        box-shadow: none;
+        background: #fff;
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+  <header class="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-slate-200 z-40">
+    <div class="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <div class="flex items-center space-x-4">
+          <img src="https://images2.imgbox.com/23/8a/Lq0o4crJ_o.png" alt="DS-logo" class="h-11 w-11 rounded-lg object-cover" />
+          <div>
+            <h1 class="text-xl font-bold text-sky-800">Consulting Blueprint Generator — Executive Edition</h1>
+            <p class="text-xs text-slate-500">Generate concise, data-informed strategic blueprints for senior stakeholders; editable and exportable.</p>
+          </div>
+        </div>
+        <div class="relative flex items-center gap-4" id="dropdownContainer">
+          <div id="generatedMeta" class="text-xs text-slate-500 text-right">Not generated yet</div>
+          <button id="hamburgerBtn" class="p-2 rounded-full hover:bg-sky-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors" aria-label="Toggle user menu" aria-expanded="false">
+            <svg class="w-7 h-7 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+          </button>
+          <div id="dropdownMenu" class="hidden absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 p-5 z-50 text-sm">
+              <div class="border-b border-slate-200 pb-3 mb-3">
+                  <p class="font-bold text-slate-800">Don Spampinato</p>
+                  <p class="text-slate-500">Digital Transformation Solutions Consultant</p>
+              </div>
+              <div class="space-y-3">
+                  <a href="mailto:donspampinato@gmail.com" target="_blank" rel="noopener noreferrer" class="flex items-start text-sky-700 hover:text-sky-600 group transition-colors duration-200">
+                      <strong class="w-16 font-semibold text-slate-600 group-hover:text-slate-800">Email:</strong>
+                      <span class="flex-1 group-hover:underline">donspampinato@gmail.com</span>
+                  </a>
+                  <a href="tel:+447983352068" target="_blank" rel="noopener noreferrer" class="flex items-start text-sky-700 hover:text-sky-600 group transition-colors duration-200">
+                      <strong class="w-16 font-semibold text-slate-600 group-hover:text-slate-800">Phone:</strong>
+                      <span class="flex-1 group-hover:underline">+44 (0) 7983 352 068</span>
+                  </a>
+                  <a href="http://www.donspampinato.co.uk" target="_blank" rel="noopener noreferrer" class="flex items-start text-sky-700 hover:text-sky-600 group transition-colors duration-200">
+                      <strong class="w-16 font-semibold text-slate-600 group-hover:text-slate-800">Website:</strong>
+                      <span class="flex-1 group-hover:underline">www.donspampinato.co.uk</span>
+                  </a>
+                  <a href="https://www.linkedin.com/in/donspampinato/" target="_blank" rel="noopener noreferrer" class="flex items-start text-sky-700 hover:text-sky-600 group transition-colors duration-200">
+                      <strong class="w-16 font-semibold text-slate-600 group-hover:text-slate-800">LinkedIn:</strong>
+                      <span class="flex-1 group-hover:underline">in/donspampinato</span>
+                  </a>
+                  <a href="https://bit.ly/40IR7zh" target="_blank" rel="noopener noreferrer" class="flex items-start text-sky-700 hover:text-sky-600 group transition-colors duration-200">
+                      <strong class="w-16 font-semibold text-slate-600 group-hover:text-slate-800">Portfolio:</strong>
+                      <span class="flex-1 group-hover:underline">bit.ly/40IR7zh</span>
+                  </a>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="meta" id="statusRow" aria-live="polite"></div>
+    </div>
+  </header>
+
+  <main class="container" role="main">
+    <!-- LEFT: Inputs -->
+    <aside class="panel" aria-labelledby="inputsHeading" role="region">
+      <h2 id="inputsHeading">Inputs & Diagnostics</h2>
+
+      <label for="company">Client / Company name</label>
+      <input id="company" type="text" placeholder="e.g., InnovateTech Solutions" aria-label="Company name" />
+
+      <label for="industry">Industry</label>
+      <input id="industry" type="text" placeholder="e.g., Software, Retail, Healthcare" />
+
+      <label for="goal">Primary Business Goal</label>
+      <select id="goal" aria-label="Primary business goal">
+        <option value="">Select a goal</option>
+        <option>Increase Revenue</option>
+        <option>Reduce Costs</option>
+        <option>Improve Customer Satisfaction</option>
+        <option>Expand Market Share</option>
+        <option>Enhance Operational Efficiency</option>
+        <option>Launch New Product/Service</option>
+      </select>
+
+      <label for="challenge">Key challenge / pain point</label>
+      <textarea id="challenge" placeholder="e.g., Slow delivery, high churn, legacy tech"></textarea>
+
+      <div style="display:flex;gap:12px;margin-bottom:16px">
+        <input id="currentRevenue" type="number" placeholder="Current annual revenue (£)" aria-label="Current annual revenue" />
+        <input id="currentCosts" type="number" placeholder="Annual operating costs (£)" aria-label="Annual operating costs" />
+      </div>
+
+      <label for="expectedRevenueLiftPercent">Estimated % improvement from initiative (quick wins)</label>
+      <input id="expectedRevenueLiftPercent" type="number" placeholder="e.g., 8" aria-label="Estimated percentage improvement" />
+      <div class="text-sm text-muted" style="margin-top:-8px; margin-bottom:16px;">
+        Used for quick ROI estimates; change as necessary.
+      </div>
+
+      <hr/>
+
+      <label>Diagnostic — rate 1 (low) to 5 (high)</label>
+      <div class="diag-grid" role="group" aria-label="Diagnostic questions">
+        <!-- p1 -->
+        <div class="q" aria-labelledby="p1label">
+          <strong id="p1label">Process clarity</strong>
+          <div class="scale">
+            <span class="text-sm text-muted">1</span>
+            <label><input type="radio" name="p1" value="1">1</label>
+            <label><input type="radio" name="p1" value="2">2</label>
+            <label><input type="radio" name="p1" value="3" checked>3</label>
+            <label><input type="radio" name="p1" value="4">4</label>
+            <label><input type="radio" name="p1" value="5">5</label>
+            <span class="text-sm text-muted">How well-documented are workflows?</span>
+          </div>
+        </div>
+
+        <!-- p2 -->
+        <div class="q" aria-labelledby="p2label">
+          <strong id="p2label">Technology & automation</strong>
+          <div class="scale">
+            <span class="text-sm text-muted">1</span>
+            <label><input type="radio" name="p2" value="1">1</label>
+            <label><input type="radio" name="p2" value="2">2</label>
+            <label><input type="radio" name="p2" value="3" checked>3</label>
+            <label><input type="radio" name="p2" value="4">4</label>
+            <label><input type="radio" name="p2" value="5">5</label>
+            <span class="text-sm text-muted">Level of automation in operations?</span>
+          </div>
+        </div>
+
+        <!-- p3 -->
+        <div class="q" aria-labelledby="p3label">
+          <strong id="p3label">Customer insight & experience</strong>
+          <div class="scale">
+            <span class="text-sm text-muted">1</span>
+            <label><input type="radio" name="p3" value="1">1</label>
+            <label><input type="radio" name="p3" value="2">2</label>
+            <label><input type="radio" name="p3" value="3" checked>3</label>
+            <label><input type="radio" name="p3" value="4">4</label>
+            <label><input type="radio" name="p3" value="5">5</label>
+            <span class="text-sm text-muted">How data-driven is customer decision-making?</span>
+          </div>
+        </div>
+
+        <!-- p4 -->
+        <div class="q" aria-labelledby="p4label">
+          <strong id="p4label">Leadership alignment</strong>
+          <div class="scale">
+            <span class="text-sm text-muted">1</span>
+            <label><input type="radio" name="p4" value="1">1</label>
+            <label><input type="radio" name="p4" value="2">2</label>
+            <label><input type="radio" name="p4" value="3" checked>3</label>
+            <label><input type="radio" name="p4" value="4">4</label>
+            <label><input type="radio" name="p4" value="5">5</label>
+            <span class="text-sm text-muted">Is leadership aligned on priorities?</span>
+          </div>
+        </div>
+
+        <!-- p5 -->
+        <div class="q" aria-labelledby="p5label">
+          <strong id="p5label">Market traction</strong>
+          <div class="scale">
+            <span class="text-sm text-muted">1</span>
+            <label><input type="radio" name="p5" value="1">1</label>
+            <label><input type="radio" name="p5" value="2">2</label>
+            <label><input type="radio" name="p5" value="3" checked>3</label>
+            <label><input type="radio" name="p5" value="4">4</label>
+            <label><input type="radio" name="p5" value="5">5</label>
+            <span class="text-sm text-muted">Customer growth & retention strength?</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="generateBtn" class="btn btn-primary" aria-label="Generate blueprint">Generate Blueprint</button>
+        <button id="saveBtn" class="btn btn-ghost btn-sm" aria-label="Save blueprint locally">Save</button>
+        <button id="loadBtn" class="btn btn-ghost btn-sm" aria-label="Load saved blueprint">Load</button>
+        <button id="clearBtn" class="btn btn-ghost btn-sm" aria-label="Clear inputs">Clear</button>
+      </div>
+
+      <div class="text-sm text-muted" style="margin-top:16px;">
+        Tip: fill revenue/costs for a quick financial estimate; saved data is stored locally in your browser.
+      </div>
+    </aside>
+
+    <!-- RIGHT: Output -->
+    <section class="panel output" aria-live="polite" aria-label="Generated output">
+      <div id="execSummary" class="summary hidden" role="region" aria-labelledby="summaryHeading">
+        <strong id="summaryHeading">Executive Summary</strong>
+        <div id="summaryBody" style="margin-top:8px;font-size:14px"></div>
+      </div>
+      <!-- Placeholder for execSummary -->
+      <div id="execSummaryPlaceholder" class="placeholder-rect" style="height: 120px; width: 100%;"></div>
+
+      <div id="kpis" class="cards hidden" role="region" aria-label="Key performance indicators">
+        <div class="card">
+          <h4>Priority</h4>
+          <div class="kpi" id="priorityKpi">—</div>
+          <div class="text-sm text-muted">Top suggested focus area.</div>
+        </div>
+        <div class="card">
+          <h4>Estimated 12m Revenue Impact</h4>
+          <div class="kpi" id="revKpi">—</div>
+          <div class="text-sm text-muted">Rough estimate based on inputs.</div>
+        </div>
+        <div class="card">
+          <h4>Estimated Cost Savings</h4>
+          <div class="kpi" id="costKpi">—</div>
+          <div class="text-sm text-muted">Quick wins vs longer-term.</div>
+        </div>
+        <div class="card">
+          <h4>Estimated ROI (approx)</h4>
+          <div class="kpi" id="roiKpi">—</div>
+          <div class="text-sm text-muted">Calculated from uplift and savings.</div>
+        </div>
+      </div>
+      <!-- Placeholder for KPIs -->
+      <div id="kpisPlaceholder" class="cards">
+        <div class="card placeholder-rect" style="height: 100px;"></div>
+        <div class="card placeholder-rect" style="height: 100px;"></div>
+        <div class="card placeholder-rect" style="height: 100px;"></div>
+        <div class="card placeholder-rect" style="height: 100px;"></div>
+      </div>
+
+      <div id="roadmap" class="panel hidden" role="region" aria-label="Strategic roadmap">
+        <h3>Strategic Roadmap</h3>
+        <div id="phases" aria-live="polite"></div>
+
+        <div class="controls">
+          <button id="editDurationsBtn" class="btn btn-ghost btn-sm" aria-label="Edit durations">Edit durations</button>
+          <button id="autoScheduleBtn" class="btn btn-ghost btn-sm" aria-label="Auto-schedule">Auto-schedule</button>
+        </div>
+      </div>
+      <!-- Placeholder for Roadmap -->
+      <div id="roadmapPlaceholder" class="panel placeholder-rect" style="height: 250px; width: 100%;"></div>
+
+      <div id="recom" class="panel hidden" role="region" aria-label="Recommended initiatives">
+        <h3>Recommended Initiatives</h3>
+        <table id="recomTable" role="table" aria-label="Recommendations">
+          <thead><tr><th>Initiative</th><th>Impact</th><th>Effort</th><th>Category</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <!-- Placeholder for Recommendations -->
+      <div id="recomPlaceholder" class="panel placeholder-rect" style="height: 200px; width: 100%;"></div>
+
+      <div id="miniViz" class="panel hidden" role="region" aria-label="Quick visuals">
+        <h3>Quick Visuals</h3>
+        <div class="mini-chart" id="strategicWeightChart" aria-hidden="false"></div>
+      </div>
+      <!-- Placeholder for Quick Visuals -->
+      <div id="miniVizPlaceholder" class="panel placeholder-rect" style="height: 120px; width: 100%;"></div>
+
+      <div id="fullReport" class="panel hidden" role="region" aria-label="One page executive brief">
+        <h3>One-Page Executive Brief</h3>
+
+        <div id="brief" contenteditable="true" aria-label="Brief, editable">
+          <!-- populated programmatically -->
+        </div>
+
+        <div class="controls">
+          <button id="printBtn" class="btn btn-primary" aria-label="Print or export">Export as PDF / Print</button>
+          <button id="copyBtn" class="btn btn-ghost btn-sm" aria-label="Copy brief to clipboard">Copy to clipboard</button>
+        </div>
+      </div>
+      <!-- Placeholder for Full Report -->
+      <div id="fullReportPlaceholder" class="panel placeholder-rect" style="height: 300px; width: 100%;"></div>
+
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    © <span id="fyYear"></span> Consulting Blueprint Generator — Executive Edition; internal use only.
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Hamburger menu toggle
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const dropdownMenu = document.getElementById('dropdownMenu');
+      hamburgerBtn.addEventListener('click', function() {
+        const isExpanded = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', !isExpanded);
+        dropdownMenu.classList.toggle('hidden');
+      });
+
+      // Close dropdown if clicked outside
+      document.addEventListener('click', function(event) {
+        const dropdownContainer = document.getElementById('dropdownContainer');
+        if (dropdownContainer && !dropdownContainer.contains(event.target) && !dropdownMenu.classList.contains('hidden')) {
+          dropdownMenu.classList.add('hidden');
+          hamburgerBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // ---------- Utilities ----------
+      const $ = sel => document.querySelector(sel);
+      const $$ = sel => Array.from(document.querySelectorAll(sel));
+      const fmtMoney = x => (x === null || x === undefined || isNaN(x) || x === 0) ? '—' : '£' + Number(x).toLocaleString('en-GB');
+      const sanitizeText = (html) => {
+        const d = document.createElement('div');
+        d.textContent = html;
+        return d.textContent.trim();
+      };
+
+      function getRadioValue(name) {
+        const el = document.querySelector('input[name="' + name + '"]:checked');
+        return el ? Number(el.value) : 3;
+      }
+
+      function setStatus(text, isError) {
+        const row = $('#statusRow');
+        row.textContent = text || '';
+        row.style.color = isError ? 'var(--danger-color)' : '';
+        row.style.fontSize = '12px'; // Small font size
+        row.style.textAlign = 'right'; // Aligned to the right
+        row.style.marginRight = '20px'; // Added right margin for spacing
+
+        setTimeout(() => { if (row.textContent === text) row.textContent = ''; }, 4500);
+      }
+
+      // ---------- Strategy library ----------
+      const STRATEGIES = {
+        "Increase Revenue": [
+          { title: "Refine pricing & packaging", impact: 8, effort: 4, cat: "Sales & GTM" },
+          { title: "Upsell / cross-sell programmes", impact: 7, effort: 3, cat: "Commercial" },
+          { title: "Digital demand gen & SEO investment", impact: 6, effort: 5, cat: "Marketing" }
+        ],
+        "Reduce Costs": [
+          { title: "Process automation (RPA / automation)", impact: 9, effort: 5, cat: "Operations" },
+          { title: "Vendor consolidation & renegotiation", impact: 7, effort: 3, cat: "Procurement" },
+          { title: "Cloud cost optimisation", impact: 6, effort: 4, cat: "Technology" }
+        ],
+        "Improve Customer Satisfaction": [
+          { title: "Customer journey mapping & CX fixes", impact: 8, effort: 4, cat: "Customer" },
+          { title: "Faster support SLA + self-service", impact: 7, effort: 3, cat: "Service" },
+          { title: "Personalised communications & offers", impact: 6, effort: 4, cat: "Marketing" }
+        ],
+        "Expand Market Share": [
+          { title: "Targeted expansion into underserved regions", impact: 8, effort: 6, cat: "Commercial" },
+          { title: "Strategic partnerships & channel build", impact: 7, effort: 5, cat: "Partnerships" },
+          { title: "Localized product adaptation", impact: 6, effort: 4, cat: "Product" }
+        ],
+        "Enhance Operational Efficiency": [
+          { title: "Lean process re-engineering", impact: 8, effort: 4, cat: "Operations" },
+          { title: "Standard operating model & KPI cadence", impact: 7, effort: 3, cat: "Governance" },
+          { title: "Targeted automation of high-cost tasks", impact: 8, effort: 5, cat: "Technology" }
+        ],
+        "Launch New Product/Service": [
+          { title: "Rapid market validation & pilots", impact: 8, effort: 4, cat: "Product" },
+          { title: "MVP build + customer feedback loop", impact: 7, effort: 5, cat: "Product" },
+          { title: "Initial go-to-market & channel tests", impact: 6, effort: 3, cat: "Commercial" }
+        ]
+      };
+
+      // ---------- DOM refs ----------
+      const generateBtn = $('#generateBtn');
+      const saveBtn = $('#saveBtn');
+      const loadBtn = $('#loadBtn');
+      const clearBtn = $('#clearBtn');
+      const copyBtn = $('#copyBtn');
+      const printBtn = $('#printBtn');
+      const autoScheduleBtn = $('#autoScheduleBtn');
+      const editDurationsBtn = $('#editDurationsBtn');
+      const fyYear = $('#fyYear');
+
+      // show current year
+      fyYear.textContent = new Date().getFullYear();
+
+      function showPlaceholders() {
+        $('#execSummary').classList.add('hidden');
+        $('#execSummaryPlaceholder').classList.remove('hidden');
+        $('#kpis').classList.add('hidden');
+        $('#kpisPlaceholder').classList.remove('hidden');
+        $('#roadmap').classList.add('hidden');
+        $('#roadmapPlaceholder').classList.remove('hidden');
+        $('#recom').classList.add('hidden');
+        $('#recomPlaceholder').classList.remove('hidden');
+        $('#miniViz').classList.add('hidden');
+        $('#miniVizPlaceholder').classList.remove('hidden');
+        $('#fullReport').classList.add('hidden');
+        $('#fullReportPlaceholder').classList.remove('hidden');
+      }
+
+      function hidePlaceholders() {
+        $('#execSummaryPlaceholder').classList.add('hidden');
+        $('#kpisPlaceholder').classList.add('hidden');
+        $('#roadmapPlaceholder').classList.add('hidden');
+        $('#recomPlaceholder').classList.add('hidden');
+        $('#miniVizPlaceholder').classList.add('hidden');
+        $('#fullReportPlaceholder').classList.add('hidden');
+      }
+
+      // Initial state: show placeholders
+      showPlaceholders();
+
+
+      // ---------- Core generate function ----------
+      function generateBlueprint(opts = {}) {
+        const originalText = generateBtn.textContent;
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Generating';
+        showPlaceholders(); // Show placeholders when generation starts
+
+        try {
+          const company = sanitizeText($('#company').value || '');
+          const industry = sanitizeText($('#industry').value || '');
+          const goal = sanitizeText($('#goal').value || '');
+          const challenge = sanitizeText($('#challenge').value || '');
+          const revenueRaw = $('#currentRevenue').value;
+          const costsRaw = $('#currentCosts').value;
+          const liftPctRaw = $('#expectedRevenueLiftPercent').value;
+
+          if (!company || !industry || !goal || !challenge) {
+            setStatus('Please fill company, industry, goal and challenge; they are required.', true);
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = originalText;
+            return;
+          }
+
+          const revenue = (revenueRaw === '' || revenueRaw === null) ? 0 : Number(String(revenueRaw).replace(/[^\d.-]/g, ''));
+          const costs = (costsRaw === '' || costsRaw === null) ? 0 : Number(String(costsRaw).replace(/[^\d.-]/g, ''));
+          const liftPct = (liftPctRaw === '' || liftPctRaw === null) ? 0 : Number(String(liftPctRaw).replace(/[^\d.-]/g, ''));
+
+          const p1 = getRadioValue('p1');
+          const p2 = getRadioValue('p2');
+          const p3 = getRadioValue('p3');
+          const p4 = getRadioValue('p4');
+          const p5 = getRadioValue('p5');
+
+          const weights = { p1: 0.22, p2: 0.25, p3: 0.18, p4: 0.2, p5: 0.15 };
+          const rawScore = (p1 * weights.p1 + p2 * weights.p2 + p3 * weights.p3 + p4 * weights.p4 + p5 * weights.p5);
+          const score = Math.round(rawScore * 20) / 20;
+          const priority = score <= 2.8 ? 'Operational Efficiency & Automation' : (score <= 3.6 ? 'Capability Building & CX' : 'Growth & Market Expansion');
+
+          const estimatedRevenueImpact = Math.round(revenue * (liftPct / 100));
+          const baselineForSavings = (costs || Math.round(revenue * 0.15));
+          const estimatedCostSavings = Math.round(baselineForSavings * ((goal === 'Reduce Costs') ? 0.12 : 0.06));
+          const roi = (() => {
+            const invest = Math.max(1, (estimatedCostSavings || 1));
+            const value = (estimatedRevenueImpact + estimatedCostSavings);
+            return Number((value / invest).toFixed(2));
+          })();
+
+          const now = new Date();
+          $('#generatedMeta').textContent = `Generated on ${now.toLocaleString('en-GB')} ; internal use only.`;
+
+          const execEl = $('#execSummary');
+          $('#summaryBody').innerHTML = `
+            <div><strong>${company}</strong> — <span class="text-muted">${industry}</span></div>
+            <div style="margin-top:8px"><strong>Goal:</strong> ${goal}; <strong>Primary challenge:</strong> ${challenge}.</div>
+            <div style="margin-top:8px">Diagnostic score: <strong>${score.toFixed(2)}/5</strong>; recommended priority: <strong>${priority}</strong>.</div>
+            <div style="margin-top:8px"><strong>Recommendation:</strong> prioritise high-impact, low-effort quick wins first; follow with capability building and phased investment in automation or GTM as required.</div>
+          `;
+          execEl.classList.remove('hidden');
+          execEl.classList.add('fade-in');
+
+          $('#kpis').classList.remove('hidden');
+          $('#priorityKpi').textContent = priority;
+          $('#revKpi').textContent = (estimatedRevenueImpact > 0) ? fmtMoney(estimatedRevenueImpact) : (liftPct ? fmtMoney(estimatedRevenueImpact) : '— (set % lift)');
+          $('#costKpi').textContent = (estimatedCostSavings > 0) ? fmtMoney(estimatedCostSavings) : '—';
+          $('#roiKpi').textContent = (roi && isFinite(roi)) ? roi + 'x' : '—';
+
+          const phases = [
+            { id: 1, title: 'Phase 1 — Assess & Validate', duration: 2, desc: 'Market / operational assessment; quick diagnostics and pilot design; define KPIs.' },
+            { id: 2, title: 'Phase 2 — Build & Configure', duration: 4, desc: 'Implement core changes: automation, processes, pilots, or go-to-market setup.' },
+            { id: 3, title: 'Phase 3 — Execute & Scale', duration: 6, desc: 'Scale successful pilots; embed governance, measure ROI, and iterate.' }
+          ];
+
+          renderPhases(phases);
+          $('#roadmap').classList.remove('hidden');
+
+          const pool = STRATEGIES[goal] || [];
+          const ranked = pool.map(r => ({ ...r, score: (r.impact * 1.2 - r.effort) })).sort((a, b) => b.score - a.score);
+          renderRecommendations(ranked);
+          $('#recom').classList.remove('hidden');
+
+          renderMiniViz({ p1, p2, p3, p4, p5 });
+          $('#miniViz').classList.remove('hidden');
+
+          $('#fullReport').classList.remove('hidden');
+          const brief = $('#brief');
+          brief.innerHTML = `
+            <strong>${company} — Strategic One-Pager</strong>
+            <p><strong>Industry:</strong> ${industry}; <strong>Goal:</strong> ${goal}; <strong>Key challenge:</strong> ${challenge}.</p>
+            <p><strong>Priority:</strong> ${priority}; <strong>Diagnostic score:</strong> ${score.toFixed(2)}/5.</p>
+            <p><strong>Top recommended initiatives:</strong></p>
+            <ul>
+              ${ranked.slice(0, 3).map(r => `<li><strong>${r.title}</strong> — Impact ${r.impact}/10; Effort ${r.effort}/10; Category: ${r.cat}.</li>`).join('')}
+            </ul>
+            <p><strong>Estimated 12-month impact:</strong> Revenue uplift ${fmtMoney(estimatedRevenueImpact)}; Cost savings ${fmtMoney(estimatedCostSavings)}.</p>
+            <p class="text-sm text-muted"><em>Next steps:</em> run a 4–8 week diagnostic; prioritise 1–2 quick wins with measurable KPIs; schedule biweekly executive review meetings to monitor performance.</p>
+            <p class="text-sm text-muted" style="margin-top:10px">Prepared using Consulting Blueprint Generator — internal use only.</p>
+          `;
+
+          window._lastBlueprint = {
+            ts: now.toISOString(),
+            company, industry, goal, challenge,
+            revenue, costs, liftPct,
+            score, priority,
+            phases, ranked
+          };
+
+          setStatus('Blueprint generated.', false);
+          hidePlaceholders(); // Hide placeholders when generation is complete
+        } catch (err) {
+          console.error(err);
+          setStatus('An error occurred while generating; check console for details.', true);
+        } finally {
+          generateBtn.disabled = false;
+          generateBtn.innerHTML = originalText;
+        }
+      }
+
+      // ---------- Render helpers ----------
+      function renderPhases(phases) {
+        const phasesEl = $('#phases');
+        phasesEl.innerHTML = '';
+        const totalMonths = phases.reduce((s, p) => s + p.duration, 0) || 1;
+
+        phases.forEach((p, i) => {
+          const percent = Math.round((p.duration / totalMonths) * 100);
+          const div = document.createElement('div');
+          div.className = 'phase-row';
+          div.innerHTML = `
+            <div class="phase-bullet" aria-hidden="true">${i + 1}</div>
+            <div class="phase-body">
+              <div>
+                <div style="font-weight:700">${p.title}</div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <label class="text-muted text-sm" style="margin-bottom:0">Duration</label>
+                  <input type="number" step="1" min="0" value="${p.duration}" data-phase="${p.id}" aria-label="Duration in months for ${p.title}" />
+                  <div class="text-sm text-muted">${p.duration} months</div>
+                </div>
+              </div>
+              <div class="text-sm text-muted">${p.desc}</div>
+              <div class="bar" aria-hidden="true"><div class="bar-fill" style="width:${percent}%;"></div></div>
+            </div>
+          `;
+          phasesEl.appendChild(div);
+
+          setTimeout(() => { const bf = div.querySelector('.bar-fill'); if (bf) bf.style.width = percent + '%'; }, 80 + i * 100);
+        });
+
+        phasesEl.querySelectorAll('input[type="number"]').forEach(inp => {
+          inp.addEventListener('change', () => {
+            const val = Number(inp.value) || 0;
+            const row = inp.closest('.phase-row');
+            const inputs = Array.from(phasesEl.querySelectorAll('input[type="number"]'));
+            const values = inputs.map(i => Number(i.value) || 0);
+            const sum = values.reduce((s, v) => s + v, 0) || 1;
+            inputs.forEach((i, idx) => {
+              const r = i.closest('.phase-row');
+              const dur = Number(i.value) || 0;
+              const p = Math.round((dur / sum) * 100);
+              const bf = r.querySelector('.bar-fill');
+              if (bf) bf.style.width = p + '%';
+              const label = r.querySelector('.phase-body > div:first-child > div:last-child > div:last-child'); // Target the "X months" div
+              if (label) label.textContent = dur + ' months';
+            });
+            setStatus('Phase durations updated.', false);
+          });
+        });
+      }
+
+      function renderRecommendations(ranked) {
+        const tbody = $('#recomTable tbody');
+        tbody.innerHTML = '';
+        ranked.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td style="font-weight:600">${row.title}</td><td>${row.impact}/10</td><td>${row.effort}/10</td><td>${row.cat}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function renderMiniViz(vals) {
+        const weightChart = $('#strategicWeightChart');
+        weightChart.innerHTML = '';
+        const weightsMap = {
+          'People': Math.round((5 - vals.p4) * 20 + vals.p3 * 5),
+          'Process': Math.round((5 - vals.p1) * 18 + vals.p2 * 4),
+          'Tech': Math.round((5 - vals.p2) * 18 + vals.p1 * 2),
+          'Market': Math.round(vals.p5 * 12),
+          'Finance': Math.round(((vals.p1 + vals.p2) / 2) * 6)
+        };
+        Object.keys(weightsMap).slice(0, 5).forEach(k => {
+          const col = document.createElement('div'); col.className = 'col';
+          col.style.height = '100%';
+          const val = weightsMap[k];
+          const inner = document.createElement('span');
+          inner.style.height = Math.max(6, Math.min(100, val)) + '%';
+          inner.title = k + ': ' + val;
+          col.appendChild(inner);
+          weightChart.appendChild(col);
+        });
+      }
+
+      // ---------- Save / Load / Clear ----------
+      function saveBlueprint() {
+        const model = window._lastBlueprint;
+        if (!model) { setStatus('No blueprint to save; please generate one first.', true); return; }
+        try {
+          localStorage.setItem('cbg_saved', JSON.stringify(model));
+          setStatus('Saved locally; use Load to restore.', false);
+        } catch (e) {
+          console.error(e);
+          setStatus('Save failed.', true);
+        }
+      }
+
+      function loadBlueprint() {
+        try {
+          const raw = localStorage.getItem('cbg_saved');
+          if (!raw) { setStatus('No saved blueprint found.', true); return; }
+          const obj = JSON.parse(raw);
+          $('#company').value = obj.company || '';
+          $('#industry').value = obj.industry || '';
+          $('#goal').value = obj.goal || '';
+          $('#challenge').value = obj.challenge || '';
+          $('#currentRevenue').value = obj.revenue || '';
+          $('#currentCosts').value = obj.costs || '';
+          $('#expectedRevenueLiftPercent').value = obj.liftPct || '';
+
+          ['p1', 'p2', 'p3', 'p4', 'p5'].forEach(pName => {
+            const val = obj[pName] || 3;
+            const radio = document.querySelector(`input[name="${pName}"][value="${val}"]`);
+            if (radio) radio.checked = true;
+          });
+
+          window._lastBlueprint = obj;
+          setTimeout(() => generateBlueprint(), 120);
+          setStatus('Loaded saved blueprint; regenerating.', false);
+        } catch (e) {
+          console.error(e);
+          setStatus('Load failed.', true);
+        }
+      }
+
+      function clearAll() {
+        if (!confirm('Clear all inputs and generated output?')) return;
+        $('#company').value = ''; $('#industry').value = ''; $('#goal').value = ''; $('#challenge').value = '';
+        $('#currentRevenue').value = ''; $('#currentCosts').value = ''; $('#expectedRevenueLiftPercent').value = '';
+        $$('input[type="radio"]').forEach((r) => r.checked = false);
+        document.querySelector('input[name="p1"][value="3"]').checked = true;
+        document.querySelector('input[name="p2"][value="3"]').checked = true;
+        document.querySelector('input[name="p3"][value="3"]').checked = true;
+        document.querySelector('input[name="p4"][value="3"]').checked = true;
+        document.querySelector('input[name="p5"][value="3"]').checked = true;
+        $('#execSummary').classList.add('hidden');
+        $('#kpis').classList.add('hidden');
+        $('#roadmap').classList.add('hidden');
+        $('#recom').classList.add('hidden');
+        $('#miniViz').classList.add('hidden');
+        $('#fullReport').classList.add('hidden');
+        window._lastBlueprint = null;
+        setStatus('Cleared.', false);
+        $('#generatedMeta').textContent = 'Not generated yet'; // Reset generated meta text
+        showPlaceholders(); // Show placeholders after clearing
+      }
+
+      // ---------- Copy / Print / Auto-schedule ----------
+      async function copyBrief() {
+        const briefHtml = $('#brief').innerHTML || $('#brief').textContent || '';
+        const plain = sanitizeText(briefHtml);
+        try {
+          await navigator.clipboard.writeText(plain);
+          setStatus('Brief copied to clipboard; paste into email or doc.', false);
+        } catch (e) {
+          console.error(e);
+          setStatus('Copy failed; try selecting and copying manually.', true);
+        }
+      }
+
+      function printReport() {
+        window.print();
+      }
+
+      function autoSchedule() {
+        if (!window._lastBlueprint) { setStatus('Generate blueprint first; then use Auto-schedule.', true); return; }
+        const p = window._lastBlueprint.priority || '';
+        const phasesEl = $('#phases');
+        if (!phasesEl) { setStatus('No roadmap to modify.', true); return; }
+        const inputs = Array.from(phasesEl.querySelectorAll('input[type="number"]'));
+        if (inputs.length === 0) { setStatus('No editable durations found.', true); return; }
+
+        if (p.includes('Operational')) {
+          inputs.forEach((i, idx) => i.value = idx === 0 ? Math.max(1, Math.round(Number(i.value) * 0.7)) : Math.max(2, Math.round(Number(i.value) * 1.15)));
+        } else {
+          const avg = Math.max(1, Math.round(inputs.reduce((s, i) => s + Number(i.value), 0) / inputs.length));
+          inputs.forEach(i => i.value = avg);
+        }
+        inputs.forEach(i => i.dispatchEvent(new Event('change')));
+        setStatus('Auto-schedule applied; durations adjusted.', false);
+      }
+
+      // ---------- wire events ----------
+      generateBtn.addEventListener('click', () => generateBlueprint());
+      saveBtn.addEventListener('click', saveBlueprint);
+      loadBtn.addEventListener('click', loadBlueprint);
+      clearBtn.addEventListener('click', clearAll);
+      copyBtn.addEventListener('click', copyBrief);
+      printBtn.addEventListener('click', printReport);
+      autoScheduleBtn.addEventListener('click', autoSchedule);
+      editDurationsBtn.addEventListener('click', () => alert('To edit durations: directly update numbers in the roadmap; changes update the visualisation automatically.'));
+
+      document.querySelector('input[name="p1"][value="3"]').checked = true;
+      document.querySelector('input[name="p2"][value="3"]').checked = true;
+      document.querySelector('input[name="p3"][value="3"]').checked = true;
+      document.querySelector('input[name="p4"][value="3"]').checked = true;
+      document.querySelector('input[name="p5"][value="3"]').checked = true;
+
+      try {
+        const cached = JSON.parse(localStorage.getItem('cbg_autosave') || 'null');
+        if (cached && cached.company) {
+          $('#company').value = cached.company || '';
+          $('#industry').value = cached.industry || '';
+          $('#goal').value = cached.goal || '';
+          $('#challenge').value = cached.challenge || '';
+          $('#currentRevenue').value = cached.revenue || '';
+          $('#currentCosts').value = cached.costs || '';
+          $('#expectedRevenueLiftPercent').value = cached.liftPct || '';
+          ['p1', 'p2', 'p3', 'p4', 'p5'].forEach(pName => {
+            if (cached[pName] !== undefined) {
+              const radio = document.querySelector(`input[name="${pName}"][value="${cached[pName]}"]`);
+              if (radio) radio.checked = true;
+            }
+          });
+        }
+      } catch (e) { /* ignore */ }
+
+      setInterval(() => {
+        try {
+          const draft = {
+            company: sanitizeText($('#company').value || ''),
+            industry: sanitizeText($('#industry').value || ''),
+            goal: sanitizeText($('#goal').value || ''),
+            challenge: sanitizeText($('#challenge').value || ''),
+            revenue: $('#currentRevenue').value || '',
+            costs: $('#currentCosts').value || '',
+            liftPct: $('#expectedRevenueLiftPercent').value || '',
+            p1: getRadioValue('p1'),
+            p2: getRadioValue('p2'),
+            p3: getRadioValue('p3'),
+            p4: getRadioValue('p4'),
+            p5: getRadioValue('p5')
+          };
+          localStorage.setItem('cbg_autosave', JSON.stringify(draft));
+        } catch (e) { /* ignore autosave errors */ }
+      }, 5000);
+    });
+  </script>
+</body>
+</html>
